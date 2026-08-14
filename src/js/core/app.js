@@ -27,23 +27,29 @@ class App {
     const percentText = document.querySelector('.loader-percent');
     const loader = document.getElementById('app-loader');
 
+    const hideLoader = () => {
+      if (loader) loader.classList.add('hidden');
+      document.body.classList.remove('loader-active');
+      this.isLoaded = true;
+      events.emit('app:loaded');
+    };
+
+    // Hard safety net — loader will ALWAYS hide after 4s max no matter what
+    const safetyTimer = setTimeout(hideLoader, 4000);
+
     const interval = setInterval(() => {
       this.loaderPercent += Math.floor(Math.random() * 12) + 5;
 
       if (this.loaderPercent >= 100) {
         this.loaderPercent = 100;
         clearInterval(interval);
+        clearTimeout(safetyTimer);
 
         if (fill) fill.style.width = '100%';
         if (percentText) percentText.textContent = '100%';
         if (ringFill) ringFill.style.strokeDashoffset = '0';
 
-        setTimeout(() => {
-          if (loader) loader.classList.add('hidden');
-          document.body.classList.remove('loader-active');
-          this.isLoaded = true;
-          events.emit('app:loaded');
-        }, 600);
+        setTimeout(hideLoader, 600);
       } else {
         if (fill) fill.style.width = `${this.loaderPercent}%`;
         if (percentText) percentText.textContent = `${this.loaderPercent}%`;

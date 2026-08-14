@@ -4,6 +4,7 @@
 
 import app from './core/app.js';
 import router from './core/router.js';
+import events from './core/events.js';
 import Navbar from './components/Navbar.js';
 import Footer from './components/Footer.js';
 import BottomNav from './components/BottomNav.js';
@@ -131,6 +132,11 @@ router
   // 404 Route
   .add('/404', lazy(() => import('./pages/NotFound.js')));
 
-// Boot App & Start Router
+// Boot App — start router only after loader completes
 app.init();
-router.start();
+
+// Wait for the loader to finish before rendering any page.
+// This prevents the router from trying to render while the loader is still visible.
+events.on('app:loaded', () => {
+  router.start();
+});
