@@ -6,170 +6,68 @@
   <meta name="description" content="RAZDAR — Your World. Your Choice. Premium e-commerce marketplace." />
   <title>RAZDAR — Your World. Your Choice.</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-
-  <!-- Preconnect for fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap"
     media="print" onload="this.media='all'" />
-
-  <!-- App CSS -->
   <link rel="stylesheet" href="./src/css/main.css" />
+  <script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('razdar_theme')||'dark')}catch(e){}</script>
 
-  <!-- Apply saved theme instantly — no flash -->
-  <script>
-    try {
-      var t = localStorage.getItem('razdar_theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', t);
-    } catch(e) {}
-  </script>
-
-  <!-- ════════════════════════════════════════
-       SELF-CONTAINED LOADER — works even if
-       the entire app JS crashes or is slow.
-       Uses only inline CSS + vanilla JS.
-       No imports. No events. No dependencies.
-       ════════════════════════════════════════ -->
   <style>
-    #app-loader {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #080808;
-      transition: opacity 0.6s ease, visibility 0.6s ease;
+    #app-loader{
+      position:fixed;inset:0;z-index:9999;
+      display:flex;align-items:center;justify-content:center;
+      background:#080808;
+      transition:opacity .5s ease,visibility .5s ease;
     }
-    #app-loader.loader-done {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-    .ldr-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 32px;
-    }
-    .ldr-ring-wrap {
-      position: relative;
-      width: 140px;
-      height: 140px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .ldr-ring-wrap svg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-    }
-    .ldr-ring-bg  { fill:none; stroke:#1a1a1a; stroke-width:2; }
-    .ldr-ring-fg  {
-      fill: none;
-      stroke: #C6FF00;
-      stroke-width: 2.5;
-      stroke-linecap: round;
-      stroke-dasharray: 283;
-      stroke-dashoffset: 283;
-      transition: stroke-dashoffset 0.2s ease;
-      filter: drop-shadow(0 0 6px rgba(198,255,0,0.5));
-    }
-    .ldr-logo {
-      font-family: 'Outfit', 'Inter', sans-serif;
-      font-size: 2rem;
-      font-weight: 900;
-      letter-spacing: 0.1em;
-      background: linear-gradient(135deg, #C6FF00, #DDFF80);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .ldr-bar-wrap {
-      width: 220px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .ldr-bar-track {
-      flex: 1;
-      height: 3px;
-      background: #1a1a1a;
-      border-radius: 9999px;
-      overflow: hidden;
-    }
-    .ldr-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #C6FF00, #DDFF80);
-      border-radius: 9999px;
-      transition: width 0.15s ease;
-      box-shadow: 0 0 8px rgba(198,255,0,0.4);
-    }
-    .ldr-pct {
-      font-family: 'Outfit', 'Inter', sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-      color: #C6FF00;
-      min-width: 36px;
-      text-align: right;
-    }
-    .ldr-tag {
-      font-family: 'Inter', sans-serif;
-      font-size: 12px;
-      color: #737373;
-      letter-spacing: 0.05em;
-    }
-    .ldr-dots {
-      display: flex;
-      gap: 6px;
-    }
-    .ldr-dots span {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #C6FF00;
-      animation: ldrDot 1.2s ease-in-out infinite;
-      opacity: 0.3;
-    }
-    .ldr-dots span:nth-child(1) { animation-delay: 0s; }
-    .ldr-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .ldr-dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes ldrDot {
-      0%,80%,100% { opacity: 0.3; transform: scale(1); }
-      40%         { opacity: 1;   transform: scale(1.3); }
-    }
-    body.loader-active { overflow: hidden; }
+    #app-loader.done{opacity:0;visibility:hidden;pointer-events:none;}
+    body.loading{overflow:hidden;}
+    .lw{display:flex;flex-direction:column;align-items:center;gap:28px;}
+    .lr{position:relative;width:130px;height:130px;display:flex;align-items:center;justify-content:center;}
+    .lr svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);}
+    .lr-bg{fill:none;stroke:#1a1a1a;stroke-width:2;}
+    .lr-fg{fill:none;stroke:#C6FF00;stroke-width:2.5;stroke-linecap:round;
+           stroke-dasharray:283;stroke-dashoffset:283;
+           transition:stroke-dashoffset .2s ease;
+           filter:drop-shadow(0 0 8px rgba(198,255,0,.5));}
+    .ll{font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:900;letter-spacing:.1em;
+        background:linear-gradient(135deg,#C6FF00,#DDFF80);
+        -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .lb{width:200px;}
+    .lb-t{height:3px;background:#1a1a1a;border-radius:999px;overflow:hidden;}
+    .lb-f{height:100%;width:0;background:linear-gradient(90deg,#C6FF00,#DDFF80);
+          border-radius:999px;transition:width .12s ease;box-shadow:0 0 8px rgba(198,255,0,.4);}
+    .lp{font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;color:#C6FF00;text-align:center;margin-top:4px;}
+    .lt{font-family:'Inter',sans-serif;font-size:11px;color:#555;letter-spacing:.05em;}
+    .ld{display:flex;gap:6px;}
+    .ld span{width:6px;height:6px;border-radius:50%;background:#C6FF00;opacity:.3;
+             animation:ldot 1.2s ease-in-out infinite;}
+    .ld span:nth-child(2){animation-delay:.2s;}
+    .ld span:nth-child(3){animation-delay:.4s;}
+    @keyframes ldot{0%,80%,100%{opacity:.3;transform:scale(1)}40%{opacity:1;transform:scale(1.3)}}
   </style>
 </head>
-<body class="loader-active">
+<body class="loading">
 
-  <!-- ── Self-contained Loader ── -->
   <div id="app-loader">
-    <div class="ldr-wrap">
-      <div class="ldr-ring-wrap">
+    <div class="lw">
+      <div class="lr">
         <svg viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" class="ldr-ring-bg" />
-          <circle cx="50" cy="50" r="45" class="ldr-ring-fg" id="ldr-ring-fg" />
+          <circle cx="50" cy="50" r="45" class="lr-bg"/>
+          <circle cx="50" cy="50" r="45" class="lr-fg" id="lrfg"/>
         </svg>
-        <div class="ldr-logo">RAZDAR</div>
+        <div class="ll">RAZDAR</div>
       </div>
-      <div class="ldr-bar-wrap">
-        <div class="ldr-bar-track">
-          <div class="ldr-bar-fill" id="ldr-bar"></div>
-        </div>
-        <div class="ldr-pct" id="ldr-pct">0%</div>
+      <div class="lb">
+        <div class="lb-t"><div class="lb-f" id="lbf"></div></div>
+        <div class="lp" id="lpct">0%</div>
       </div>
-      <div class="ldr-tag">Your World. Your Choice.</div>
-      <div class="ldr-dots"><span></span><span></span><span></span></div>
+      <div class="lt">Your World. Your Choice.</div>
+      <div class="ld"><span></span><span></span><span></span></div>
     </div>
   </div>
 
-  <!-- App Shell -->
   <nav id="navbar"></nav>
   <div id="search-overlay"></div>
   <main id="app"></main>
@@ -179,60 +77,39 @@
   <div id="toast-container" class="toast-container"></div>
   <div id="modal-container"></div>
 
-  <!-- Inline loader script — runs immediately, no module deps -->
+  <script type="module" src="./src/js/main.js"></script>
+
   <script>
-    // Global flag: set to true when loader finishes.
-    // main.js (module) checks this after routes are registered.
-    window.__razdarLoaderDone = false;
-    window.__razdarStartRouter = null; // main.js sets this callback
+    /* Loader animation — purely visual, does NOT gate the router.
+       The router starts immediately when main.js is ready (no waiting). */
+    (function(){
+      var p=0, bar=document.getElementById('lbf'),
+          pct=document.getElementById('lpct'),
+          ring=document.getElementById('lrfg'),
+          el=document.getElementById('app-loader'),
+          gone=false;
 
-    (function () {
-      var pct    = 0;
-      var bar    = document.getElementById('ldr-bar');
-      var pctEl  = document.getElementById('ldr-pct');
-      var ringFg = document.getElementById('ldr-ring-fg');
-      var loader = document.getElementById('app-loader');
-      var done   = false;
-
-      function hideLoader() {
-        if (done) return;
-        done = true;
-        if (bar)    bar.style.width   = '100%';
-        if (pctEl)  pctEl.textContent = '100%';
-        if (ringFg) ringFg.style.strokeDashoffset = '0';
-        setTimeout(function() {
-          loader.classList.add('loader-done');
-          document.body.classList.remove('loader-active');
-          window.__razdarLoaderDone = true;
-          // If main.js already registered routes, start now
-          if (typeof window.__razdarStartRouter === 'function') {
-            window.__razdarStartRouter();
-          }
-        }, 500);
+      function hide(){
+        if(gone)return; gone=true;
+        el.classList.add('done');
+        document.body.classList.remove('loading');
       }
 
-      var iv = setInterval(function() {
-        pct += Math.floor(Math.random() * 12) + 5;
-        if (pct >= 100) {
-          pct = 100;
-          clearInterval(iv);
-          if (bar)    bar.style.width   = '100%';
-          if (pctEl)  pctEl.textContent = '100%';
-          if (ringFg) ringFg.style.strokeDashoffset = '0';
-          setTimeout(hideLoader, 400);
-        } else {
-          if (bar)    bar.style.width   = pct + '%';
-          if (pctEl)  pctEl.textContent = pct + '%';
-          if (ringFg) ringFg.style.strokeDashoffset = String(283 - 283 * pct / 100);
-        }
-      }, 40);
+      var iv=setInterval(function(){
+        p+=Math.floor(Math.random()*10)+4;
+        if(p>=100){p=100;clearInterval(iv);}
+        if(bar) bar.style.width=p+'%';
+        if(pct) pct.textContent=p+'%';
+        if(ring) ring.style.strokeDashoffset=String(283-283*p/100);
+        if(p>=100) setTimeout(hide,400);
+      },50);
 
-      // ABSOLUTE FALLBACK — always hides after 4s no matter what
-      setTimeout(hideLoader, 4000);
+      /* Hard fallback — hide after 3.5s no matter what */
+      setTimeout(hide,3500);
+
+      /* Also hide as soon as main.js signals it's ready */
+      window.__razdarHideLoader=hide;
     })();
   </script>
-
-  <!-- App module — deferred automatically by type="module" -->
-  <script type="module" src="./src/js/main.js"></script>
 </body>
 </html>

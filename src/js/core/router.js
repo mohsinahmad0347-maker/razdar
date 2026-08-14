@@ -1,156 +1,127 @@
 // ============================================
-// RAZDAR — SPA Router (Hash-based, optimized)
+// RAZDAR — SPA Hash Router
 // ============================================
 
 class Router {
   constructor() {
-    this.routes = {};
+    this.routes     = {};
     this.currentRoute = null;
-    this.beforeHooks = [];
-    this.afterHooks = [];
-    // Cleanup registry: components can register a destroy() callback
-    this._cleanupFns = [];
+    this._cleanupFns  = [];
     window.addEventListener('hashchange', () => this.handleRoute());
   }
 
-  add(path, handler) {
-    this.routes[path] = handler;
-    return this;
-  }
+  add(path, handler) { this.routes[path] = handler; return this; }
 
-  before(hook) {
-    this.beforeHooks.push(hook);
-    return this;
-  }
-
-  after(hook) {
-    this.afterHooks.push(hook);
-    return this;
-  }
-
-  // Pages call this to register cleanup (e.g. carousel.destroy())
-  onLeave(fn) {
-    this._cleanupFns.push(fn);
-  }
+  onLeave(fn) { this._cleanupFns.push(fn); }
 
   _runCleanup() {
-    this._cleanupFns.forEach(fn => { try { fn(); } catch (_) {} });
+    this._cleanupFns.forEach(fn => { try { fn(); } catch(_){} });
     this._cleanupFns = [];
   }
 
-  getRoute() {
-    const hash = window.location.hash;
-    // No hash at all → home
+  // Returns the current path, e.g. "/shop" or "/"
+  getPath() {
+    const hash = window.location.hash; // e.g. "#/shop?q=x"
     if (!hash || hash === '#' || hash === '#/') return '/';
-    const path = hash.slice(1); // remove the '#'
-    return path || '/';
+    // slice off the leading '#', keep everything before '?'
+    return hash.slice(1).split('?')[0] || '/';
   }
 
-  getParams() {
-    const hash = this.getRoute();
-    const parts = hash.split('?');
-    const params = {};
-    if (parts[1]) {
-      parts[1].split('&').forEach(p => {
-        const [k, v] = p.split('=');
-        params[decodeURIComponent(k)] = decodeURIComponent(v || '');
-      });
-    }
-    return params;
+  // Returns query params as an object
+  getQuery() {
+    const hash = window.location.hash;
+    const qi   = hash.indexOf('?');
+    if (qi === -1) return {};
+    const obj  = {};
+    hash.slice(qi + 1).split('&').forEach(pair => {
+      const [k, v] = pair.split('=');
+      if (k) obj[decodeURIComponent(k)] = decodeURIComponent(v || '');
+    });
+    return obj;
   }
 
-  matchRoute(path) {
-    // Strip query string for matching
-    const cleanPath = path.split('?')[0];
-
-    // Direct exact match first (fastest, handles '/' correctly)
-    if (this.routes[cleanPath]) {
-      return { handler: this.routes[cleanPath], params: {} };
+  match(path) {
+    // 1. Exact match (handles '/' and all static routes)
+    if (this.routes[path] !== undefined) {
+      return { handler: this.routes[path], params: {} };
     }
-
-    // Parametric route matching
-    for (const route in this.routes) {
-      if (!route.includes(':')) continue; // skip non-parametric (already checked above)
-
-      const routeParts = route.split('/');
-      const pathParts  = cleanPath.split('/');
-      if (routeParts.length !== pathParts.length) continue;
-
+    // 2. Parametric match (e.g. /product/:id)
+    for (const route of Object.keys(this.routes)) {
+      if (!route.includes(':')) continue;
+      const rParts = route.split('/');
+      const pParts = path.split('/');
+      if (rParts.length !== pParts.length) continue;
       const params = {};
-      let match = true;
-      for (let i = 0; i < routeParts.length; i++) {
-        if (routeParts[i].startsWith(':')) {
-          params[routeParts[i].slice(1)] = decodeURIComponent(pathParts[i]);
-        } else if (routeParts[i] !== pathParts[i]) {
-          match = false;
-          break;
+      let ok = true;
+      for (let i = 0; i < rParts.length; i++) {
+        if (rParts[i].startsWith(':')) {
+          params[rParts[i].slice(1)] = decodeURIComponent(pParts[i]);
+        } else if (rParts[i] !== pParts[i]) {
+          ok = false; break;
         }
       }
-      if (match) return { handler: this.routes[route], params };
+      if (ok) return { handler: this.routes[route], params };
     }
     return null;
   }
 
   async handleRoute() {
-    const path = this.getRoute();
-    const queryParams = this.getParams();
+    const path   = this.getPath();
+    const query  = this.getQuery();
+    const appEl  = document.getElementById('app');
 
-    // Destroy any components from the previous page
     this._runCleanup();
 
-    for (const hook of this.beforeHooks) {
-      if (await hook(path) === false) return;
-    }
+    // Fade out
+    appEl.style.opacity = '0';
+    appEl.style.transition = 'opacity .15s ease';
+    await new Promise(r => setTimeout(r, 150));
 
-    const match = this.matchRoute(path);
-    const appEl = document.getElementById('app');
+    const found = this.match(path);
 
-    if (match) {
+    if (found) {
       this.currentRoute = path;
-
-      appEl.classList.add('page-transition-exit');
-      await new Promise(r => setTimeout(r, 150));
-      appEl.classList.remove('page-transition-exit');
-
       try {
-        await match.handler({ ...match.params, ...queryParams });
+        await found.handler({ ...found.params, ...query });
       } catch (err) {
-        console.error('Route error:', err);
-        appEl.innerHTML = `<div class="empty-state min-h-screen">
-          <div class="empty-state-icon">⚠️</div>
-          <h3>Something went wrong</h3>
-          <p>Please try again later</p>
-          <a href="#/" class="btn btn-primary mt-4">Go Home</a>
-        </div>`;
+        console.error('[RAZDAR] Route error on', path, err);
+        appEl.innerHTML = `
+          <div style="min-height:60vh;display:flex;flex-direction:column;align-items:center;
+                      justify-content:center;gap:16px;padding:40px;text-align:center;">
+            <div style="font-size:48px;">⚠️</div>
+            <h2>Something went wrong</h2>
+            <p style="color:#737373;">${err.message || 'An unexpected error occurred.'}</p>
+            <a href="#/" style="padding:10px 24px;background:#C6FF00;color:#000;
+               border-radius:8px;font-weight:600;text-decoration:none;">Go Home</a>
+          </div>`;
       }
-
-      appEl.classList.add('page-transition-enter');
-      setTimeout(() => appEl.classList.remove('page-transition-enter'), 500);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
     } else {
-      if (this.routes['/404']) {
-        await this.routes['/404']();
+      this.currentRoute = null;
+      // Try /404 page, else inline fallback
+      const notFound = this.routes['/404'];
+      if (notFound) {
+        try { await notFound({}); } catch(_) {}
       } else {
-        appEl.innerHTML = `<div class="empty-state min-h-screen">
-          <h3>Page Not Found</h3>
-          <a href="#/" class="btn btn-primary mt-4">Go Home</a>
-        </div>`;
+        appEl.innerHTML = `
+          <div style="min-height:60vh;display:flex;flex-direction:column;align-items:center;
+                      justify-content:center;gap:16px;padding:40px;text-align:center;">
+            <div style="font-size:64px;">404</div>
+            <h2>Page Not Found</h2>
+            <p style="color:#737373;">The page <strong>${path}</strong> does not exist.</p>
+            <a href="#/" style="padding:10px 24px;background:#C6FF00;color:#000;
+               border-radius:8px;font-weight:600;text-decoration:none;">Go Home</a>
+          </div>`;
       }
     }
 
-    for (const hook of this.afterHooks) {
-      await hook(path);
-    }
+    // Fade in
+    appEl.style.opacity = '1';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  navigate(path) {
-    window.location.hash = path;
-  }
+  navigate(path) { window.location.hash = path; }
 
-  start() {
-    this.handleRoute();
-  }
+  start() { this.handleRoute(); }
 }
 
 export const router = new Router();
