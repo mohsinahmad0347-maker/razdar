@@ -132,11 +132,9 @@ router
   // 404 Route
   .add('/404', lazy(() => import('./pages/NotFound.js')));
 
-// Boot App — start router only after loader completes
-app.init();
-
-// Wait for the loader to finish before rendering any page.
-// This prevents the router from trying to render while the loader is still visible.
+// Boot App — register the listener BEFORE init() so we never miss the event
 events.on('app:loaded', () => {
   router.start();
 });
+
+app.init();

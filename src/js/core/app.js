@@ -4,7 +4,7 @@
 
 import store from './store.js';
 import events from './events.js';
-import router from './router.js';
+// NOTE: router is NOT imported here — it's managed by main.js to avoid circular deps
 
 class App {
   constructor() {
@@ -22,20 +22,21 @@ class App {
   // ── Loader Sequence ──
   startLoader() {
     document.body.classList.add('loader-active');
-    const fill = document.querySelector('.loader-progress-fill');
+    const fill     = document.querySelector('.loader-progress-fill');
     const ringFill = document.querySelector('.loader-ring-fill');
-    const percentText = document.querySelector('.loader-percent');
-    const loader = document.getElementById('app-loader');
+    const percent  = document.querySelector('.loader-percent');
+    const loader   = document.getElementById('app-loader');
 
     const hideLoader = () => {
-      if (loader) loader.classList.add('hidden');
-      document.body.classList.remove('loader-active');
+      if (this.isLoaded) return;   // guard: run only once
       this.isLoaded = true;
+      if (loader)  loader.classList.add('hidden');
+      document.body.classList.remove('loader-active');
       events.emit('app:loaded');
     };
 
-    // Hard safety net — loader will ALWAYS hide after 4s max no matter what
-    const safetyTimer = setTimeout(hideLoader, 4000);
+    // Hard safety net — always hides after 3 s no matter what
+    const safetyTimer = setTimeout(hideLoader, 3000);
 
     const interval = setInterval(() => {
       this.loaderPercent += Math.floor(Math.random() * 12) + 5;
@@ -45,90 +46,60 @@ class App {
         clearInterval(interval);
         clearTimeout(safetyTimer);
 
-        if (fill) fill.style.width = '100%';
-        if (percentText) percentText.textContent = '100%';
+        if (fill)     fill.style.width = '100%';
+        if (percent)  percent.textContent = '100%';
         if (ringFill) ringFill.style.strokeDashoffset = '0';
 
-        setTimeout(hideLoader, 600);
+        // Small pause so the user sees 100%, then hide
+        setTimeout(hideLoader, 500);
       } else {
-        if (fill) fill.style.width = `${this.loaderPercent}%`;
-        if (percentText) percentText.textContent = `${this.loaderPercent}%`;
+        if (fill)    fill.style.width = `${this.loaderPercent}%`;
+        if (percent) percent.textContent = `${this.loaderPercent}%`;
         if (ringFill) {
-          const dashoffset = 283 - (283 * (this.loaderPercent / 100));
-          ringFill.style.strokeDashoffset = dashoffset;
+          ringFill.style.strokeDashoffset =
+            String(283 - 283 * (this.loaderPercent / 100));
         }
       }
     }, 40);
   }
 
-  // ── Global Button Ripple Effect ──
+  // ── Ripple Effect ──
   initRippleEffect() {
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.btn');
       if (!btn) return;
-
-      const rect = btn.getBoundingClientRect();
-      const circle = document.createElement('span');
+      const rect     = btn.getBoundingClientRect();
       const diameter = Math.max(rect.width, rect.height);
-      const radius = diameter / 2;
-
-      circle.style.width = circle.style.height = `${diameter}px`;
-      circle.style.left = `${e.clientX - rect.left - radius}px`;
-      circle.style.top = `${e.clientY - rect.top - radius}px`;
+      const radius   = diameter / 2;
+      const circle   = document.createElement('span');
+      circle.style.cssText =
+        `width:${diameter}px;height:${diameter}px;` +
+        `left:${e.clientX - rect.left - radius}px;` +
+        `top:${e.clientY - rect.top - radius}px`;
       circle.classList.add('ripple');
-
-      const ripple = btn.getElementsByClassName('ripple')[0];
-      if (ripple) {
-        ripple.remove();
-      }
-
+      btn.querySelector('.ripple')?.remove();
       btn.appendChild(circle);
     });
   }
 
-  // ── Scroll Reveal Observer ──
+  // ── Scroll Reveal ──
   initScrollReveal() {
-    const observerOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.1
-    };
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); }),
+      { threshold: 0.1 }
+    );
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('revealed');
-        }
-      });
-    }, observerOptions);
+    const observe = () =>
+      document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.reveal-scale')
+        .forEach(el => observer.observe(el));
 
-    const observeElements = () => {
-      const elements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
-      elements.forEach(el => observer.observe(el));
-    };
-
-    // Run on initial load and after route changes
-    events.on('route:changed', () => {
-      setTimeout(observeElements, 100);
-    });
-    setTimeout(observeElements, 700);
+    events.on('route:changed', () => setTimeout(observe, 100));
+    setTimeout(observe, 700);
   }
 
-  // ── Global Listeners ──
+  // ── Global Events ──
   bindGlobalEvents() {
-    // Theme toggle handling
-    events.on('theme:toggle', () => {
-      store.toggleTheme();
-    });
-
-    // Handle hash links smooth scroll
-    document.addEventListener('click', (e) => {
-      const target = e.target.closest('a[href^="#"]');
-      if (target && target.getAttribute('href').startsWith('#/')) {
-        // Router will handle hash routes
-        return;
-      }
-    });
+    events.on('theme:toggle', () => store.toggleTheme());
   }
 }
 
