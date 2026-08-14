@@ -39,7 +39,11 @@ class Router {
   }
 
   getRoute() {
-    return window.location.hash.slice(1) || '/';
+    const hash = window.location.hash;
+    // No hash at all → home
+    if (!hash || hash === '#' || hash === '#/') return '/';
+    const path = hash.slice(1); // remove the '#'
+    return path || '/';
   }
 
   getParams() {
@@ -56,9 +60,20 @@ class Router {
   }
 
   matchRoute(path) {
+    // Strip query string for matching
+    const cleanPath = path.split('?')[0];
+
+    // Direct exact match first (fastest, handles '/' correctly)
+    if (this.routes[cleanPath]) {
+      return { handler: this.routes[cleanPath], params: {} };
+    }
+
+    // Parametric route matching
     for (const route in this.routes) {
+      if (!route.includes(':')) continue; // skip non-parametric (already checked above)
+
       const routeParts = route.split('/');
-      const pathParts = path.split('?')[0].split('/');
+      const pathParts  = cleanPath.split('/');
       if (routeParts.length !== pathParts.length) continue;
 
       const params = {};

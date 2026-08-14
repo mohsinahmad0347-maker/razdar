@@ -181,8 +181,13 @@
 
   <!-- Inline loader script — runs immediately, no module deps -->
   <script>
+    // Global flag: set to true when loader finishes.
+    // main.js (module) checks this after routes are registered.
+    window.__razdarLoaderDone = false;
+    window.__razdarStartRouter = null; // main.js sets this callback
+
     (function () {
-      var pct = 0;
+      var pct    = 0;
       var bar    = document.getElementById('ldr-bar');
       var pctEl  = document.getElementById('ldr-pct');
       var ringFg = document.getElementById('ldr-ring-fg');
@@ -198,12 +203,14 @@
         setTimeout(function() {
           loader.classList.add('loader-done');
           document.body.classList.remove('loader-active');
-          // Signal app JS that loader is gone
-          document.dispatchEvent(new CustomEvent('razdar:loaded'));
+          window.__razdarLoaderDone = true;
+          // If main.js already registered routes, start now
+          if (typeof window.__razdarStartRouter === 'function') {
+            window.__razdarStartRouter();
+          }
         }, 500);
       }
 
-      // Animate progress bar
       var iv = setInterval(function() {
         pct += Math.floor(Math.random() * 12) + 5;
         if (pct >= 100) {
