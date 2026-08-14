@@ -132,9 +132,20 @@ router
   // 404 Route
   .add('/404', lazy(() => import('./pages/NotFound.js')));
 
-// Boot App — register the listener BEFORE init() so we never miss the event
-events.on('app:loaded', () => {
-  router.start();
-});
-
+// Boot App — init non-loader features immediately
 app.init();
+
+// Start the router only after the inline loader (index.html) has hidden itself.
+// The loader fires a native DOM CustomEvent 'razdar:loaded' when done.
+// This is 100% reliable — it doesn't depend on any import chain succeeding.
+document.addEventListener('razdar:loaded', () => {
+  router.start();
+}, { once: true });
+
+// Extra safety: if the event somehow never fires (e.g. very old browser),
+// start the router after 5s so the site is never permanently stuck.
+setTimeout(() => {
+  if (!router.currentRoute) {
+    router.start();
+  }
+}, 5000);

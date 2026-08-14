@@ -3,104 +3,229 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="RAZDAR — Your World. Your Choice. Premium e-commerce marketplace for electronics, fashion, lifestyle and more." />
-  <meta name="keywords" content="RAZDAR, ecommerce, online shopping, electronics, fashion, deals" />
-  <meta name="author" content="RAZDAR" />
+  <meta name="description" content="RAZDAR — Your World. Your Choice. Premium e-commerce marketplace." />
   <title>RAZDAR — Your World. Your Choice.</title>
-
-  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-  <!-- DNS prefetch + preconnect for Google Fonts (non-blocking) -->
+  <!-- Preconnect for fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-  <!--
-    Load Google Fonts asynchronously so they never block first paint.
-    media="print" trick: browser downloads in background, then onload
-    switches media to "all" so fonts apply without render-blocking.
-  -->
-  <link
-    rel="stylesheet"
+  <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap"
-    media="print"
-    onload="this.media='all'"
-  />
-  <!-- Fallback for browsers with JS disabled -->
-  <noscript>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap"
-    />
-  </noscript>
+    media="print" onload="this.media='all'" />
 
-  <!-- App styles — loaded normally (critical path CSS) -->
+  <!-- App CSS -->
   <link rel="stylesheet" href="./src/css/main.css" />
 
-  <!--
-    Inline critical theme so there's zero flash of wrong theme.
-    Reads localStorage before any JS executes.
-  -->
+  <!-- Apply saved theme instantly — no flash -->
   <script>
-    (function () {
-      try {
-        var t = localStorage.getItem('razdar_theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', t);
-      } catch (_) {}
-    })();
+    try {
+      var t = localStorage.getItem('razdar_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch(e) {}
   </script>
+
+  <!-- ════════════════════════════════════════
+       SELF-CONTAINED LOADER — works even if
+       the entire app JS crashes or is slow.
+       Uses only inline CSS + vanilla JS.
+       No imports. No events. No dependencies.
+       ════════════════════════════════════════ -->
+  <style>
+    #app-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #080808;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    #app-loader.loader-done {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .ldr-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+    }
+    .ldr-ring-wrap {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ldr-ring-wrap svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .ldr-ring-bg  { fill:none; stroke:#1a1a1a; stroke-width:2; }
+    .ldr-ring-fg  {
+      fill: none;
+      stroke: #C6FF00;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-dasharray: 283;
+      stroke-dashoffset: 283;
+      transition: stroke-dashoffset 0.2s ease;
+      filter: drop-shadow(0 0 6px rgba(198,255,0,0.5));
+    }
+    .ldr-logo {
+      font-family: 'Outfit', 'Inter', sans-serif;
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      background: linear-gradient(135deg, #C6FF00, #DDFF80);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .ldr-bar-wrap {
+      width: 220px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ldr-bar-track {
+      flex: 1;
+      height: 3px;
+      background: #1a1a1a;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .ldr-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #C6FF00, #DDFF80);
+      border-radius: 9999px;
+      transition: width 0.15s ease;
+      box-shadow: 0 0 8px rgba(198,255,0,0.4);
+    }
+    .ldr-pct {
+      font-family: 'Outfit', 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: #C6FF00;
+      min-width: 36px;
+      text-align: right;
+    }
+    .ldr-tag {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: #737373;
+      letter-spacing: 0.05em;
+    }
+    .ldr-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .ldr-dots span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #C6FF00;
+      animation: ldrDot 1.2s ease-in-out infinite;
+      opacity: 0.3;
+    }
+    .ldr-dots span:nth-child(1) { animation-delay: 0s; }
+    .ldr-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .ldr-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes ldrDot {
+      0%,80%,100% { opacity: 0.3; transform: scale(1); }
+      40%         { opacity: 1;   transform: scale(1.3); }
+    }
+    body.loader-active { overflow: hidden; }
+  </style>
 </head>
-<body>
-  <!-- Premium Loader -->
-  <div id="app-loader" class="app-loader">
-    <div class="loader-content">
-      <div class="loader-logo-wrap">
-        <div class="loader-ring">
-          <svg viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="45" class="loader-ring-bg" />
-            <circle cx="50" cy="50" r="45" class="loader-ring-fill" />
-          </svg>
+<body class="loader-active">
+
+  <!-- ── Self-contained Loader ── -->
+  <div id="app-loader">
+    <div class="ldr-wrap">
+      <div class="ldr-ring-wrap">
+        <svg viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" class="ldr-ring-bg" />
+          <circle cx="50" cy="50" r="45" class="ldr-ring-fg" id="ldr-ring-fg" />
+        </svg>
+        <div class="ldr-logo">RAZDAR</div>
+      </div>
+      <div class="ldr-bar-wrap">
+        <div class="ldr-bar-track">
+          <div class="ldr-bar-fill" id="ldr-bar"></div>
         </div>
-        <div class="loader-logo">
-          <span class="logo-r">R</span><span class="logo-a">A</span><span class="logo-z">Z</span><span class="logo-d">D</span><span class="logo-a2">A</span><span class="logo-r2">R</span>
-        </div>
+        <div class="ldr-pct" id="ldr-pct">0%</div>
       </div>
-      <div class="loader-progress">
-        <div class="loader-progress-bar"><div class="loader-progress-fill"></div></div>
-        <span class="loader-percent">0%</span>
-      </div>
-      <p class="loader-tagline">Your World. Your Choice.</p>
-      <div class="loader-dots">
-        <span></span><span></span><span></span>
-      </div>
+      <div class="ldr-tag">Your World. Your Choice.</div>
+      <div class="ldr-dots"><span></span><span></span><span></span></div>
     </div>
   </div>
 
-  <!-- Navbar -->
+  <!-- App Shell -->
   <nav id="navbar"></nav>
-
-  <!-- Search Overlay -->
   <div id="search-overlay"></div>
-
-  <!-- Main Content -->
   <main id="app"></main>
-
-  <!-- Footer -->
   <footer id="footer"></footer>
-
-  <!-- Bottom Nav (Mobile) -->
   <div id="bottom-nav"></div>
-
-  <!-- Chat Widget -->
   <div id="chat-widget"></div>
-
-  <!-- Toast Container -->
   <div id="toast-container" class="toast-container"></div>
-
-  <!-- Modal Container -->
   <div id="modal-container"></div>
 
-  <!-- Main JS — type module means it's deferred automatically -->
+  <!-- Inline loader script — runs immediately, no module deps -->
+  <script>
+    (function () {
+      var pct = 0;
+      var bar    = document.getElementById('ldr-bar');
+      var pctEl  = document.getElementById('ldr-pct');
+      var ringFg = document.getElementById('ldr-ring-fg');
+      var loader = document.getElementById('app-loader');
+      var done   = false;
+
+      function hideLoader() {
+        if (done) return;
+        done = true;
+        if (bar)    bar.style.width   = '100%';
+        if (pctEl)  pctEl.textContent = '100%';
+        if (ringFg) ringFg.style.strokeDashoffset = '0';
+        setTimeout(function() {
+          loader.classList.add('loader-done');
+          document.body.classList.remove('loader-active');
+          // Signal app JS that loader is gone
+          document.dispatchEvent(new CustomEvent('razdar:loaded'));
+        }, 500);
+      }
+
+      // Animate progress bar
+      var iv = setInterval(function() {
+        pct += Math.floor(Math.random() * 12) + 5;
+        if (pct >= 100) {
+          pct = 100;
+          clearInterval(iv);
+          if (bar)    bar.style.width   = '100%';
+          if (pctEl)  pctEl.textContent = '100%';
+          if (ringFg) ringFg.style.strokeDashoffset = '0';
+          setTimeout(hideLoader, 400);
+        } else {
+          if (bar)    bar.style.width   = pct + '%';
+          if (pctEl)  pctEl.textContent = pct + '%';
+          if (ringFg) ringFg.style.strokeDashoffset = String(283 - 283 * pct / 100);
+        }
+      }, 40);
+
+      // ABSOLUTE FALLBACK — always hides after 4s no matter what
+      setTimeout(hideLoader, 4000);
+    })();
+  </script>
+
+  <!-- App module — deferred automatically by type="module" -->
   <script type="module" src="./src/js/main.js"></script>
 </body>
 </html>
